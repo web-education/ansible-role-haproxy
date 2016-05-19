@@ -1,6 +1,9 @@
 global
 	log	/dev/log	local0
 	log /dev/log	local1 notice
+{% for option in haproxy_global_options %}
+  {{ option }}
+{% endfor %}
 {% if haproxy_socket != '' %}
 	stats socket {{ haproxy_socket }} mode 660 level admin
 {% endif %}
@@ -13,9 +16,9 @@ global
 
 defaults
 	log global
-	mode  http
-	option  httplog
-	option  dontlognull
+{% for option in haproxy_defaults_options %}
+  {{ option }}
+{% endfor %}
 {% if haproxy_version == '1.4' %}
 		contimeout 5000
 		clitimeout 50000
@@ -35,19 +38,17 @@ defaults
 	errorfile 504 /etc/haproxy/errors/504.http
 {% endif %}
 
-frontend {{ haproxy_frontend_name }}
-	bind {{ haproxy_frontend_bind_address }}:{{ haproxy_frontend_port }}
-{% for acl in haproxy_frontend_acls %}
-	{{ acl }}
-{% endfor %}
-{% for acl_match in haproxy_frontend_acl_matches %}
-	{{ acl_match }}
-{% endfor %}
+{% for frontend in haproxy_frontends %}
+  frontend {{ frontend.name }}
+    bind {{ frontend.bind_address }}:{{ frontend.port }} {% if frontend.ssl is defined %} {{ frontend.ssl }} {% endif %}
+  {% for option in frontend.options %}
+    {{ option }}
+  {% endfor %}
 
-{% if haproxy_default_backend_name is defined %}
-	default_backend {{ haproxy_default_backend_name }}
-{% endif %}
-
+  {% if frontend.default_backend_name is defined %}
+    default_backend {{ frontend.default_backend_name }}
+  {% endif %}
+{% endfor %}
 
 {% for backend in haproxy_backends %}
 backend {{ backend.name }}
