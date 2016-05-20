@@ -40,7 +40,8 @@ defaults
 
 {% for frontend in haproxy_frontends %}
   frontend {{ frontend.name }}
-    bind {{ frontend.bind_address }}:{{ frontend.port }} {% if frontend.ssl is defined %} {{ frontend.ssl }} {% endif %}
+    bind {{ frontend.bind_address }}:{{ frontend.port }}{% if frontend.ssl is defined %} {{ frontend.ssl }} {% endif %}
+
   {% for option in frontend.options %}
     {{ option }}
   {% endfor %}
